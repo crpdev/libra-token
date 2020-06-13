@@ -1,7 +1,7 @@
 # libra-token
 Implementing a custom token on Libra Blockchain using Move Language
 
-# Clone the Libra Core Repository:
+ _Steps to run the custom token
   
   1. git clone https://github.com/libra/libra.git
   2. cd libra
