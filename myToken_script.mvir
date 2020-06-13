@@ -1,0 +1,28 @@
+script:
+
+// Performs simple testing to verify the published modules above.
+
+import Transaction.MyToken;
+
+main() {
+
+    let sender: address;
+    let minted_tokens: R#MyToken.T;
+    let balance: u64;
+
+    sender = get_txn_sender();
+
+    // Publish an myToken account
+    MyToken.publish();
+
+    // Mint 100 myTokens
+    minted_tokens = MyToken.mint(100);
+
+    // Deposit the freshly minted tokens
+    MyToken.deposit(move(sender), move(minted_tokens));
+
+    //balance = MyToken.balance();
+     assert(move(balance) == 100, 3);
+
+    return;
+}

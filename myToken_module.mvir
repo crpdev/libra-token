@@ -1,0 +1,67 @@
+module MyToken {
+
+    // A resource representing the MyToken
+    resource T {
+        value: u64
+    }
+
+    // Publishes an initial zero dToken to the sender.
+    public publish() {
+        move_to_sender<T>(T{ value: 0 });
+        return;
+    }
+
+    // Mint new myTokens.
+    public mint(value: u64): R#Self.T {
+        return T{value: move(value)};
+    }
+
+    // Returns an account's myToken balance.
+    public balance(): u64 {
+        let sender: address;
+        let token_ref: &mut R#Self.T;
+        let token_value: u64;
+
+        sender = get_txn_sender();
+        token_ref = borrow_global<T>(move(sender));
+        token_value = *(&move(token_ref).value);
+
+        return move(token_value);
+    }
+
+    // Deposit owned tokens to a payee's address
+    public deposit(payee: address, to_deposit: R#Self.T) {
+        let payee_token_ref: &mut R#Self.T;
+        let payee_token_value: u64;
+        let to_deposit_value: u64;
+
+        payee_token_ref = borrow_global<T>(move(payee));
+        payee_token_value = *(&copy(payee_token_ref).value);
+
+        // Unpack and destroy to_deposit tokens
+        T{ value: to_deposit_value } = move(to_deposit);
+
+        // Increase the payees balance with the destroyed token amount
+        *(&mut move(payee_token_ref).value) = move(payee_token_value) + move(to_deposit_value);
+
+        return;
+    }
+
+    // Withdraw an amount of tokens of the sender and return it.
+    public withdraw(amount: u64): R#Self.T {
+        let sender: address;
+        let sender_token_ref: &mut R#Self.T;
+        let value: u64;
+
+        sender = get_txn_sender();
+        sender_token_ref = borrow_global<T>(move(sender));
+        value = *(&copy(sender_token_ref).value);
+
+        // Make sure that sender has enough tokens
+        assert(copy(value) >= copy(amount), 1);
+
+        // Split the senders token and return the amount specified
+        *(&mut move(sender_token_ref).value) = move(value) - copy(amount);
+        return T{ value: move(amount) };
+    }
+}
